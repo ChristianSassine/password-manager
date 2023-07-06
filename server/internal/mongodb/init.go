@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	client         *mongo.Client
-	clientDb       *mongo.Database
-	passCollection *mongo.Collection
+	client     *mongo.Client
+	clientDb   *mongo.Database
+	collection *mongo.Collection
 )
 
 const (
@@ -41,9 +41,6 @@ func Start() error {
 	if err != nil {
 		panic(err)
 	}
-
-	defer Disconnect()
-
 	var result bson.M
 	clientDb = client.Database(databaseName)
 	if err := clientDb.RunCommand(ctx, bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
@@ -54,6 +51,8 @@ func Start() error {
 	if isCollectionMissing(userCollection) {
 		createCollection()
 	}
+
+	collection = clientDb.Collection(userCollection)
 
 	return nil
 }

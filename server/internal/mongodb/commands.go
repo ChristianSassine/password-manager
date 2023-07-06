@@ -4,34 +4,55 @@ import (
 	"context"
 	"time"
 
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Command wrappers for other modules
-func Add(document interface{}, opts ...*options.InsertOneOptions) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+const (
+	maxCommandTime = 2 * time.Second
+)
+
+// Command wrappers for other packages
+func Add(document interface{}, opts ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), maxCommandTime)
 	defer cancel()
 
-	passCollection.InsertOne(ctx, document, opts...)
+	return collection.InsertOne(ctx, document, opts...)
 }
 
-func Remove(filter interface{}, opts ...*options.DeleteOptions) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+func Remove(filter interface{}, opts ...*options.DeleteOptions) (*mongo.DeleteResult, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), maxCommandTime)
 	defer cancel()
 
-	passCollection.DeleteOne(ctx, filter, opts...)
+	return collection.DeleteOne(ctx, filter, opts...)
 }
 
-func Modify(filter interface{}, update interface{}, opts ...*options.UpdateOptions) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+func Update(filter interface{}, update interface{}, opts ...*options.UpdateOptions) (*mongo.UpdateResult, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), maxCommandTime)
 	defer cancel()
 
-	passCollection.UpdateOne(ctx, filter, update, opts...)
+	return collection.UpdateOne(ctx, filter, update, opts...)
 }
 
-func Get(filter interface{}, opts ...*options.FindOneOptions) {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+func Get(filter interface{}, opts ...*options.FindOneOptions) *mongo.SingleResult {
+	ctx, cancel := context.WithTimeout(context.Background(), maxCommandTime)
 	defer cancel()
 
-	passCollection.FindOne(ctx, filter, opts...)
+	return collection.FindOne(ctx, filter, opts...)
+}
+
+func Exist(filter interface{}, opts ...*options.CountOptions) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), maxCommandTime)
+	defer cancel()
+
+	count, err := collection.CountDocuments(ctx, filter, opts...)
+	if err != nil {
+		return false, err
+	}
+
+	if count > 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
