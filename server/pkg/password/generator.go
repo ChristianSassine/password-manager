@@ -4,6 +4,9 @@ import (
 	"crypto/rand"
 	"errors"
 	"math/big"
+	"strings"
+
+	"github.com/ChristianSassine/password-manager/server/pkg/utils"
 )
 
 // Errors
@@ -34,8 +37,14 @@ type optionSizes struct {
 	Symbols      int
 }
 
+// TODO: compute the positions beforehand so that we can have a linear complexity instead of O(n^2)
 func Generate(opts Options) (string, error) {
-	var s = ""
+	type poolOption struct {
+		count      int
+		characters string
+	}
+
+	var s strings.Builder
 
 	err := validate(opts)
 	if err != nil {
@@ -47,67 +56,45 @@ func Generate(opts Options) (string, error) {
 		return "", err
 	}
 
-	for i := 0; i < int(sizes.LowerLetters); i++ {
-		c, err := getNewCharacter(LowerLetters)
-		if err != nil {
-			return "", err
-		}
+	var optionsPool []poolOption = []poolOption{}
 
-		i, err := getNewIndex(len(s) + 1)
-		if err != nil {
-			return "", err
-		}
-		s = s[:i] + c + s[i:]
+	if sizes.LowerLetters > 0 {
+		optionsPool = append(optionsPool, poolOption{count: sizes.LowerLetters, characters: LowerLetters})
 	}
 
-	for i := 0; i < int(sizes.UpperLetters); i++ {
-		c, err := getNewCharacter(UpperLetters)
-		if err != nil {
-			return "", err
-		}
-
-		i, err := getNewIndex(len(s) + 1)
-		if err != nil {
-			return "", err
-		}
-		s = s[:i] + c + s[i:]
+	if sizes.UpperLetters > 0 {
+		optionsPool = append(optionsPool, poolOption{count: sizes.UpperLetters, characters: UpperLetters})
 	}
 
-	for i := 0; i < int(sizes.Digits); i++ {
-		c, err := getNewCharacter(Digits)
-		if err != nil {
-			return "", err
-		}
-
-		i, err := getNewIndex(len(s) + 1)
-		if err != nil {
-			return "", err
-		}
-		s = s[:i] + c + s[i:]
+	if sizes.Digits > 0 {
+		optionsPool = append(optionsPool, poolOption{count: sizes.Digits, characters: Digits})
 	}
 
-	for i := 0; i < int(sizes.Symbols); i++ {
-		c, err := getNewCharacter(Symbols)
+	if sizes.Symbols > 0 {
+		optionsPool = append(optionsPool, poolOption{count: sizes.Symbols, characters: Symbols})
+	}
+
+	for len(optionsPool) > 0 {
+		r, err := rand.Int(rand.Reader, big.NewInt(int64(len(optionsPool))))
 		if err != nil {
 			return "", err
 		}
+		i := int(r.Int64())
 
-		i, err := getNewIndex(len(s) + 1)
+		var characters = optionsPool[i].characters
+		r, err = rand.Int(rand.Reader, big.NewInt(int64(len(characters))))
 		if err != nil {
 			return "", err
 		}
-		s = s[:i] + c + s[i:]
+		j := int(r.Int64())
+		s.WriteByte(characters[j])
+		optionsPool[i].count--
+		if optionsPool[i].count == 0 {
+			optionsPool = utils.DeleteIndex(optionsPool, i) // This operation will still be considered constant since we only have 4 elements at max
+		}
 	}
 
-	return s, nil
-}
-
-func getNewIndex(length int) (int, error) {
-	n, err := rand.Int(rand.Reader, big.NewInt(int64(length)))
-	if err != nil {
-		return 0, err
-	}
-	return int(n.Int64()), err
+	return s.String(), nil
 }
 
 func getNewCharacter(charactersSet string) (string, error) {
@@ -122,24 +109,24 @@ func getNewCharacter(charactersSet string) (string, error) {
 
 // TODO: refactor this whole function
 func computeOptionLengths(opts Options) (optionSizes, error) {
-	rest := opts.Length
+	remaining := opts.Length
 	optsNum := 0
 
 	if opts.LowerLetters {
 		optsNum++
-		rest--
+		remaining--
 	}
 	if opts.UpperLetters {
 		optsNum++
-		rest--
+		remaining--
 	}
 	if opts.Digits {
 		optsNum++
-		rest--
+		remaining--
 	}
 	if opts.Symbols {
 		optsNum++
-		rest--
+		remaining--
 	}
 
 	distributedPool := make([]int, optsNum)
@@ -147,7 +134,7 @@ func computeOptionLengths(opts Options) (optionSizes, error) {
 		distributedPool[i] = 1
 	}
 
-	for i := 0; i < rest; i++ {
+	for i := 0; i < remaining; i++ {
 		randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(distributedPool))))
 		if err != nil {
 			return optionSizes{}, err
@@ -179,23 +166,23 @@ func computeOptionLengths(opts Options) (optionSizes, error) {
 }
 
 func validate(opts Options) error {
-	reqOpts := 0
+	optsNum := 0
 	if opts.LowerLetters {
-		reqOpts++
+		optsNum++
 	}
 	if opts.UpperLetters {
-		reqOpts++
+		optsNum++
 	}
 	if opts.Digits {
-		reqOpts++
+		optsNum++
 	}
 	if opts.Symbols {
-		reqOpts++
+		optsNum++
 	}
-	if reqOpts == 0 {
+	if optsNum == 0 {
 		return ZeroOptionsErr
 	}
-	if reqOpts > opts.Length {
+	if optsNum > opts.Length {
 		return LengthErr
 	}
 	return nil
