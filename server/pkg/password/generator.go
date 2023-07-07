@@ -37,7 +37,6 @@ type optionSizes struct {
 	Symbols      int
 }
 
-// TODO: compute the positions beforehand so that we can have a linear complexity instead of O(n^2)
 func Generate(opts Options) (string, error) {
 	type poolOption struct {
 		count      int
@@ -90,7 +89,7 @@ func Generate(opts Options) (string, error) {
 		s.WriteByte(characters[j])
 		optionsPool[i].count--
 		if optionsPool[i].count == 0 {
-			optionsPool = utils.DeleteIndex(optionsPool, i) // This operation will still be considered constant since we only have 4 elements at max
+			optionsPool = utils.DeleteIndex(optionsPool, i) // We'll do this at max of 4 times. It can be considered constant.
 		}
 	}
 
