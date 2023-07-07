@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	userAlreadyExistsErr = errors.New("user with the same username already exits.")
-	userInvalidErr       = errors.New("Invalid credentials for user authentification.")
+	UserAlreadyExistsErr = errors.New("user with the same username already exits.")
+	UserInvalidErr       = errors.New("Invalid credentials for user authentification.")
 )
 
 const (
@@ -20,7 +20,7 @@ const (
 	managedPasswordsKey = "passwords"
 )
 
-type userData struct {
+type UserData struct {
 	Username  string            `bson:"username"`
 	Password  string            `bson:"password"`
 	Passwords map[string]string `bson:"passwords,omitempty"`
@@ -37,7 +37,7 @@ func CreateUser(username string, password string) error {
 		return err
 	}
 
-	_, err = mongodb.Add(userData{Username: username, Password: hashedPassword})
+	_, err = mongodb.Add(UserData{Username: username, Password: hashedPassword})
 	return err
 }
 
@@ -49,7 +49,7 @@ func validateUserCreds(username string, password string) error {
 	}
 
 	if !exists {
-		return userInvalidErr
+		return UserInvalidErr
 	}
 	filter = bson.D{{Key: usernameKey, Value: username}}
 	projection := bson.D{
@@ -57,14 +57,14 @@ func validateUserCreds(username string, password string) error {
 	}
 	res := mongodb.Get(filter, options.FindOne().SetProjection(projection))
 
-	user := userData{}
+	user := UserData{}
 	err = res.Decode(&user)
 	if err != nil {
 		return err
 	}
 
 	if user.Password != password {
-		return userInvalidErr
+		return UserInvalidErr
 	}
 
 	return nil
@@ -77,7 +77,7 @@ func validateUserCreation(username string) error {
 		return err
 	}
 	if exists {
-		return userAlreadyExistsErr
+		return UserAlreadyExistsErr
 	}
 	return nil
 }
