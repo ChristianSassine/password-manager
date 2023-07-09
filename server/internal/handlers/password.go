@@ -75,7 +75,7 @@ func handlePasswordGet(w http.ResponseWriter, r *http.Request, creds credentials
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	fmt.Println("GOT KEY", passKey)
+	fmt.Println("GOT KEY", passKey) // TODO: remove
 	pass, err := manager.UserGetPassword(creds.Username, creds.Password, passKey)
 	if err != nil {
 		log.Println("handlePasswordGet", "err", err) // TODO: remove
@@ -87,7 +87,20 @@ func handlePasswordGet(w http.ResponseWriter, r *http.Request, creds credentials
 }
 
 func handlePasswordRemove(w http.ResponseWriter, r *http.Request, creds credentials) {
-
+	passKey := r.URL.Query().Get("key")
+	if passKey == "" {
+		log.Println("handlePasswordGet", "Password Empty") // TODO: remove
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	fmt.Println("GOT KEY", passKey) // TODO: remove
+	err := manager.UserRemovePassword(creds.Username, creds.Password, passKey)
+	if err != nil {
+		log.Println("handlePasswordGet", "err", err) // TODO: remove
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func handlePasswordModify(w http.ResponseWriter, r *http.Request, creds credentials) {
