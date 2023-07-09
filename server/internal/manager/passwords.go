@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/ChristianSassine/password-manager/server/internal/mongodb"
-	"github.com/ChristianSassine/password-manager/server/pkg/password"
+	"github.com/ChristianSassine/password-manager/server/pkg/generator"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -61,7 +61,7 @@ func UserRenamePassword(username string, userPassword string, oldKey string, new
 func addPassword(username string, key string) error {
 	var filter = bson.D{{Key: usernameKey, Value: username}}
 
-	newPassword, err := password.Generate(password.Options{Length: 32, LowerLetters: true, UpperLetters: true, Digits: true, Symbols: true}) // TODO: Make password configurable
+	newPassword, err := generator.Generate(generator.Options{Length: 32, LowerLetters: true, UpperLetters: true, Digits: true, Symbols: true}) // TODO: Make password configurable
 	if err != nil {
 		return err
 	}

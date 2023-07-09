@@ -1,4 +1,4 @@
-package password
+package generator
 
 import (
 	"crypto/rand"
@@ -55,41 +55,41 @@ func Generate(opts Options) (string, error) {
 		return "", err
 	}
 
-	var optionsPool []poolOption = []poolOption{}
+	var poolOpts []poolOption = []poolOption{}
 
 	if sizes.LowerLetters > 0 {
-		optionsPool = append(optionsPool, poolOption{count: sizes.LowerLetters, characters: LowerLetters})
+		poolOpts = append(poolOpts, poolOption{count: sizes.LowerLetters, characters: LowerLetters})
 	}
 
 	if sizes.UpperLetters > 0 {
-		optionsPool = append(optionsPool, poolOption{count: sizes.UpperLetters, characters: UpperLetters})
+		poolOpts = append(poolOpts, poolOption{count: sizes.UpperLetters, characters: UpperLetters})
 	}
 
 	if sizes.Digits > 0 {
-		optionsPool = append(optionsPool, poolOption{count: sizes.Digits, characters: Digits})
+		poolOpts = append(poolOpts, poolOption{count: sizes.Digits, characters: Digits})
 	}
 
 	if sizes.Symbols > 0 {
-		optionsPool = append(optionsPool, poolOption{count: sizes.Symbols, characters: Symbols})
+		poolOpts = append(poolOpts, poolOption{count: sizes.Symbols, characters: Symbols})
 	}
 
-	for len(optionsPool) > 0 {
-		r, err := rand.Int(rand.Reader, big.NewInt(int64(len(optionsPool))))
+	for len(poolOpts) > 0 {
+		r, err := rand.Int(rand.Reader, big.NewInt(int64(len(poolOpts))))
 		if err != nil {
 			return "", err
 		}
 		i := int(r.Int64())
 
-		var characters = optionsPool[i].characters
+		var characters = poolOpts[i].characters
 		r, err = rand.Int(rand.Reader, big.NewInt(int64(len(characters))))
 		if err != nil {
 			return "", err
 		}
 		j := int(r.Int64())
 		s.WriteByte(characters[j])
-		optionsPool[i].count--
-		if optionsPool[i].count == 0 {
-			optionsPool = utils.DeleteIndex(optionsPool, i) // We'll do this at max of 4 times. It can be considered constant.
+		poolOpts[i].count--
+		if poolOpts[i].count == 0 {
+			poolOpts = utils.DeleteIndex(poolOpts, i) // We'll do this at max of 4 times. It can be considered constant.
 		}
 	}
 
