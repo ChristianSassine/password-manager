@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -9,6 +10,11 @@ import (
 
 	"github.com/ChristianSassine/password-manager/server/internal/manager"
 )
+
+type renameKeys struct {
+	OldKey string `json:"oldKey"`
+	NewKey string `json:"newKey"`
+}
 
 func timer(name string) func() {
 	start := time.Now()
@@ -104,5 +110,29 @@ func handlePasswordRemove(w http.ResponseWriter, r *http.Request, creds credenti
 }
 
 func handlePasswordModify(w http.ResponseWriter, r *http.Request, creds credentials) {
+	if r.Header.Get("Content-Type") != "application/json" {
+		log.Println("handlePasswordModify", "bad type", r.Header.Get("Content-Type")) // TODO: remove
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	var keys renameKeys
+	err := json.NewDecoder(r.Body).Decode(&keys)
+	if err != nil {
+		log.Println("handlePasswordModify", "bad json", keys) // TODO: remove
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
+	fmt.Println(keys)
+	err = manager.UserRenamePassword(creds.Username, creds.Password, keys.OldKey, keys.NewKey)
+	if err == manager.NoPasswordErr {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
