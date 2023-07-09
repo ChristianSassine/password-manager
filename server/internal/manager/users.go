@@ -63,7 +63,7 @@ func validateUserCreds(username string, password string) error {
 		return err
 	}
 
-	if user.Password != password {
+	if !hashing.CheckPassword(password, user.Password) {
 		return UserInvalidErr
 	}
 
