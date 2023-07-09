@@ -10,12 +10,22 @@ import (
 )
 
 var (
-	NoPasswordErr = errors.New("Invalid password key. The password doesn't exist")
+	NoPasswordErr       = errors.New("Invalid password key. The password doesn't exist")
+	PasswordConflictErr = errors.New("Invalid password key. The password already exists")
 )
 
 // TODO: Migrate to using mongoDB ids instead of usernames
 
 func UserAddPassword(username string, userPassword string, key string) error {
+	var filter = bson.D{{Key: usernameKey, Value: username}, {Key: managedPasswordsKey + "." + key, Value: bson.D{{Key: "$exists", Value: true}}}}
+	exists, err := mongodb.Exist(filter)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return PasswordConflictErr
+	}
+
 	if err := validateUserCreds(username, userPassword); err != nil {
 		return err
 	}

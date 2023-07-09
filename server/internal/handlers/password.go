@@ -65,6 +65,11 @@ func handlePasswordAdd(w http.ResponseWriter, r *http.Request, creds credentials
 		return
 	}
 	err = manager.UserAddPassword(creds.Username, creds.Password, key)
+	if err == manager.PasswordConflictErr {
+		log.Println("handlePasswordAdd", "err", err) // TODO: remove
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println("handlePasswordAdd", "Error:", err) // TODO: remove
