@@ -2,15 +2,19 @@ package manager
 
 import (
 	"github.com/ChristianSassine/password-manager/server/internal/mongodb"
+	"github.com/ChristianSassine/password-manager/server/pkg/password"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func UserAddPassword(username string, userPassword string, key string, password string) error {
+// TODO: Migrate to using mongoDB ids instead of usernames
+
+func UserAddPassword(username string, userPassword string, key string) error {
 	if err := validateUserCreds(username, userPassword); err != nil {
 		return err
 	}
 
-	return addPassword(username, key, password)
+	return addPassword(username, key)
 }
 
 func UserRemovePassword(username string, userPassword string, key string) error {
@@ -29,15 +33,40 @@ func UserRenamePassword(username string, userPassword string, oldKey string, new
 	return renamePasswordKey(username, oldKey, newKey)
 }
 
+func UserGetPassword(username string, userPassword string, key string) (string, error) {
+	if err := validateUserCreds(username, userPassword); err != nil {
+		return "", err
+	}
+
+	return getPassword(username, key)
+}
+
 // TODO: Add password encryption
-func addPassword(username string, key string, password string) error {
+func addPassword(username string, key string) error {
 	var filter = bson.D{{Key: usernameKey, Value: username}}
-	var update = bson.D{{Key: "$set", Value: bson.D{{Key: managedPasswordsKey + "." + key, Value: password}}}}
-	_, err := mongodb.Update(filter, update)
+
+	newPassword, err := password.Generate(password.Options{Length: 32, LowerLetters: true, UpperLetters: true, Digits: true, Symbols: true}) // TODO: Make password configurable
+	if err != nil {
+		return err
+	}
+	var update = bson.D{{Key: "$set", Value: bson.D{{Key: managedPasswordsKey + "." + key, Value: newPassword}}}}
+	_, err = mongodb.Update(filter, update)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func getPassword(username string, key string) (string, error) {
+	opts := options.FindOne().SetProjection(bson.D{{Key: managedPasswordsKey + "." + key, Value: 1}})
+	var filter = bson.D{{Key: usernameKey, Value: username}, {Key: managedPasswordsKey + "." + key, Value: bson.D{{Key: "$exists", Value: true}}}}
+	res := mongodb.Get(filter, opts)
+
+	var data UserData
+	if err := res.Decode(&data); err != nil {
+		return "", err
+	}
+	return data.Passwords[key], nil
 }
 
 func removePassword(username string, key string) error {
