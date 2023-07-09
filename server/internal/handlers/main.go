@@ -2,14 +2,10 @@ package handlers
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"regexp"
 	"strings"
-
-	"github.com/ChristianSassine/password-manager/server/internal/manager"
 )
 
 var (
@@ -26,33 +22,8 @@ type credentials struct {
 }
 
 func InitHandlers() {
-	http.HandleFunc("/auth", postAccount)
-}
-
-func postAccount(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodPost:
-		decoder := json.NewDecoder(r.Body)
-		var creds credentials
-		err := decoder.Decode(&creds)
-		if err != nil {
-			panic(err)
-		}
-		err = manager.CreateUser(creds.Username, creds.Password)
-		switch err {
-		case nil:
-			log.Println(creds, "Accepted")
-			w.WriteHeader(http.StatusAccepted)
-		case manager.UserAlreadyExistsErr:
-			log.Println(creds, "StatusConflict")
-			w.WriteHeader(http.StatusConflict)
-		default:
-			log.Println(creds, "StatusInternalServerError")
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-	default:
-		http.Error(w, noMethodMsg, http.StatusMethodNotAllowed)
-	}
+	http.HandleFunc("/auth", handleAuth)
+	http.HandleFunc("/password", handlePassword)
 }
 
 func getCredentials(r *http.Request) (credentials, error) {

@@ -31,6 +31,7 @@ func main() {
 	// Server initialization
 	log.Println("Started Listening...")
 	handlers.InitHandlers()
+	// TODO: Adds TLS
 	err = http.ListenAndServe(":4200", nil) // TODO: Change port to environment PORT
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err) // TODO: replace log
