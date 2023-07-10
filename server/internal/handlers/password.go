@@ -88,6 +88,11 @@ func handlePasswordGet(w http.ResponseWriter, r *http.Request, creds credentials
 	}
 	fmt.Println("GOT KEY", passKey) // TODO: remove
 	pass, err := manager.UserGetPassword(creds.Username, creds.Password, passKey)
+	if err == manager.NoPasswordErr {
+		log.Println("handlePasswordGet", "err", err) // TODO: remove
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 	if err != nil {
 		log.Println("handlePasswordGet", "err", err) // TODO: remove
 		w.WriteHeader(http.StatusBadRequest)
