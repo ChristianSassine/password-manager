@@ -113,11 +113,22 @@ func renamePasswordKey(username string, oldKey string, newKey string) error {
 	if !exists {
 		return NoPasswordErr
 	}
+
+	filter = bson.D{{Key: usernameKey, Value: username}, {Key: managedPasswordsKey + "." + newKey, Value: bson.D{{Key: "$exists", Value: true}}}}
+	exists, err = mongodb.Exist(filter)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return PasswordConflictErr
+	}
+
 	filter = bson.D{{Key: usernameKey, Value: username}}
 	var update = bson.D{{Key: "$rename", Value: bson.D{{Key: managedPasswordsKey + "." + oldKey, Value: managedPasswordsKey + "." + newKey}}}}
 	_, err = mongodb.Update(filter, update)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

@@ -133,10 +133,14 @@ func handlePasswordModify(w http.ResponseWriter, r *http.Request, creds credenti
 		return
 	}
 
-	fmt.Println(keys)
+	fmt.Println(keys) // TODO: remove
 	err = manager.UserRenamePassword(creds.Username, creds.Password, keys.OldKey, keys.NewKey)
 	if err == manager.NoPasswordErr {
 		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if err == manager.PasswordConflictErr {
+		w.WriteHeader(http.StatusConflict)
 		return
 	}
 	if err != nil {
