@@ -1,6 +1,8 @@
 package requests
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -12,21 +14,28 @@ type Credentials struct {
 	Password string
 }
 
+type keysChange struct {
+	OldKey string `json:"oldKey"`
+	NewKey string `json:"newKey"`
+}
+
 const (
 	authPath     = "/auth"
 	passwordPath = "/password"
 )
 
 const (
-	PassKeyquery = "?key="
+	PassKeyQuery = "?key="
 )
+
+var client = &http.Client{}
 
 func GetPassword(key string) (*http.Response, error) {
 	url, err := getURL()
 	if err != nil {
 		return nil, err
 	}
-	response, err := http.Get(url + passwordPath + PassKeyquery + key)
+	response, err := client.Get(url + passwordPath + PassKeyQuery + key)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +48,54 @@ func AddPassword(key string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	response, err := http.Post(url+passwordPath, "text/plain", strings.NewReader(key))
+	response, err := client.Post(url+passwordPath, "text/plain", strings.NewReader(key))
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func ChangePasswordKey(oldKey string, newKey string) (*http.Response, error) {
+	url, err := getURL()
+	if err != nil {
+		return nil, err
+	}
+
+	change := &keysChange{OldKey: oldKey, NewKey: newKey}
+	data, err := json.Marshal(change)
+	if err != nil {
+		return nil, err
+	}
+
+	fullURL := url + passwordPath
+	req, err := http.NewRequest(http.MethodPut, fullURL, bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	response, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func RemovePassword(key string) (*http.Response, error) {
+	url, err := getURL()
+	if err != nil {
+		return nil, err
+	}
+
+	fullURL := url + passwordPath + PassKeyQuery + key
+	req, err := http.NewRequest(http.MethodDelete, fullURL, &bytes.Buffer{})
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
