@@ -21,57 +21,59 @@ var (
 )
 
 const (
-	AddErrPrefix = "Adding password error:"
-	GetErrPrefix = "Fetching password error:"
+	addErrPrefix    = "Adding password error:"
+	getErrPrefix    = "Fetching password error:"
+	renameErrPrefix = "Renaming password key error:"
+	removeErrPrefix = "Renaming password key error:"
 )
 
 func AddPassword(key string) {
-	response, err := requests.AddPassword(key)
 	output.NormalLn("Adding password...")
 
+	response, err := requests.AddPassword(key)
 	if err != nil {
-		output.Error("%v %v", AddErrPrefix, ServerContactErr)
+		output.Error("%v %v", addErrPrefix, ServerContactErr)
 		os.Exit(1)
 	}
 
 	if response.StatusCode == http.StatusCreated {
 		output.Success("The password has been added!")
-		// TODO: Fetch password
+		GetPassword(key)
 		return
 	}
 
 	if response.StatusCode == http.StatusConflict {
-		output.Error("%v %v", AddErrPrefix, PasswordExistsErr)
+		output.Error("%v %v", addErrPrefix, PasswordExistsErr)
 		os.Exit(1)
 	}
 
 	if response.StatusCode == http.StatusBadRequest {
-		output.Error("%v %v", AddErrPrefix, PasswordExistsErr)
+		output.Error("%v %v", addErrPrefix, PasswordExistsErr)
 		os.Exit(1)
 	}
-	output.Error("%v %v", AddErrPrefix, ServerErr)
+	output.Error("%v %v", addErrPrefix, ServerErr)
 }
 
 func GetPassword(key string) {
-	response, err := requests.GetPassword(key)
 	output.NormalLn("Fetching the password...")
 
+	response, err := requests.GetPassword(key)
 	if err != nil {
-		output.Error("%v %v", GetErrPrefix, ServerContactErr)
+		output.Error("%v %v", getErrPrefix, ServerContactErr)
 		os.Exit(1)
 	}
 
 	if response.StatusCode == http.StatusOK {
 		body, err := ioutil.ReadAll(response.Body)
 		if err != nil {
-			output.Error("%v %v", GetErrPrefix, err)
+			output.Error("%v %v", getErrPrefix, err)
 			os.Exit(1)
 		}
 
 		output.Success("The password has been fetched!")
 		err = clipboard.WriteAll(string(body))
 		if err != nil {
-			output.Error("%v %v", GetErrPrefix, ClientClipboardErr)
+			output.Error("%v %v", getErrPrefix, ClientClipboardErr)
 			os.Exit(1)
 		}
 
@@ -80,42 +82,57 @@ func GetPassword(key string) {
 	}
 
 	if response.StatusCode == http.StatusNotFound {
-		output.Error("%v %v", GetErrPrefix, NoPasswordErr)
+		output.Error("%v %v", getErrPrefix, NoPasswordErr)
 		os.Exit(1)
 	}
-	output.Error("%v %v", GetErrPrefix, ServerErr)
+	output.Error("%v %v", getErrPrefix, ServerErr)
 }
 
-func ChangePasswordKey(key string) {
-	response, err := requests.GetPassword(key)
-	output.NormalLn("Fetching the password...")
+func RenameKey(key string, newKey string) {
+	output.NormalLn("Changing the password key...")
 
+	response, err := requests.ChangePasswordKey(key, newKey)
 	if err != nil {
-		output.Error("%v %v", GetErrPrefix, ServerContactErr)
+		output.Error("%v %v", renameErrPrefix, ServerContactErr)
 		os.Exit(1)
 	}
 
 	if response.StatusCode == http.StatusOK {
-		body, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			output.Error("%v %v", GetErrPrefix, err)
-			os.Exit(1)
-		}
+		output.Success("The key %s has been renamed to %s", key, newKey)
+		return
+	}
 
-		output.Success("The password has been fetched!")
-		err = clipboard.WriteAll(string(body))
-		if err != nil {
-			output.Error("%v %v", GetErrPrefix, ClientClipboardErr)
-			os.Exit(1)
-		}
+	if response.StatusCode == http.StatusConflict {
+		output.Error("%v %v", renameErrPrefix, PasswordExistsErr)
+		os.Exit(1)
+	}
 
-		output.NormalLn("It has been copied to the clipboard.")
+	if response.StatusCode == http.StatusNotFound {
+		output.Error("%v %v", renameErrPrefix, NoPasswordErr)
+		os.Exit(1)
+	}
+
+	output.Error("%v %v", renameErrPrefix, ServerErr)
+}
+
+func RemovePassword(key string) {
+	output.NormalLn("Removing the password...")
+
+	response, err := requests.RemovePassword(key)
+	if err != nil {
+		output.Error("%v %v", removeErrPrefix, ServerContactErr)
+		os.Exit(1)
+	}
+
+	if response.StatusCode == http.StatusOK {
+		output.Success("The key %s has been removed.", key)
 		return
 	}
 
 	if response.StatusCode == http.StatusNotFound {
-		output.Error("%v %v", GetErrPrefix, NoPasswordErr)
+		output.Error("%v %v", removeErrPrefix, NoPasswordErr)
 		os.Exit(1)
 	}
-	output.Error("%v %v", GetErrPrefix, ServerErr)
+
+	output.Error("%v %v", removeErrPrefix, ServerErr)
 }
