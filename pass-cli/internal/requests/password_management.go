@@ -3,16 +3,20 @@ package requests
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/ChristianSassine/password-manager/pass-cli/internal/output"
 )
 
-// TODO: move somewhere more appropriate
-type Credentials struct {
-	Username string
-	Password string
-}
+var (
+	NoUsernameErr = errors.New("unable to find the username environmental variable")
+	NoPasswordErr = errors.New("unable to find the password environmental variable")
+	NoURL         = errors.New("unable to locate the URL. Please use config to define the URL")
+)
 
 type keysChange struct {
 	OldKey string `json:"oldKey"`
@@ -20,11 +24,7 @@ type keysChange struct {
 }
 
 const (
-	authPath     = "/auth"
 	passwordPath = "/password"
-)
-
-const (
 	PassKeyQuery = "?key="
 )
 
@@ -104,8 +104,18 @@ func RemovePassword(key string) (*http.Response, error) {
 }
 
 func getUserCreds() (Credentials, error) {
-	// TODO: add logic
-	return Credentials{"hello", "lol"}, nil
+	username, ok := os.LookupEnv("PASS_USERNAME")
+	if !ok {
+		output.Error(NoUsernameErr.Error())
+		os.Exit(1)
+	}
+
+	password, ok := os.LookupEnv("PASS_PASSWORD")
+	if !ok {
+		output.Error(NoPasswordErr.Error())
+		os.Exit(1)
+	}
+	return Credentials{username, password}, nil
 }
 
 func getURL() (string, error) {
@@ -115,5 +125,10 @@ func getURL() (string, error) {
 	}
 	var link = fmt.Sprintf("http://%s:%s@localhost:4200", creds.Username, creds.Password) // TODO: load link from file
 
+	return link, nil
+}
+
+func getURLWithoutCreds() (string, error) {
+	var link = fmt.Sprintf("http://localhost:4200") // TODO: load link from file
 	return link, nil
 }
