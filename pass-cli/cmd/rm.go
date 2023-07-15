@@ -1,14 +1,13 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
+	"os"
+
 	"github.com/ChristianSassine/password-manager/pass-cli/internal/manager"
+	"github.com/ChristianSassine/password-manager/pass-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
-// rmCmd represents the rm command
 var rmCmd = &cobra.Command{
 	Use:   "rm [key]",
 	Short: "A brief description of your command",
@@ -23,6 +22,14 @@ to quickly create a Cobra application.`,
 			cmd.Help()
 			return
 		}
+
+		isQuiet, err := cmd.Flags().GetBool("quiet")
+		if err != nil {
+			output.Error("%v", err)
+			os.Exit(1)
+		}
+
+		output.SetOutput(isQuiet)
 		manager.RemovePassword(args[0])
 	},
 }
