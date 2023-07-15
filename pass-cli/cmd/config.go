@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/ChristianSassine/password-manager/pass-cli/internal/manager"
 	"github.com/spf13/cobra"
 )
@@ -18,8 +16,7 @@ var configCmd = &cobra.Command{
 		url, _ := cmd.Flags().GetString("url")
 		creds, _ := cmd.Flags().GetString("creds")
 		if url != "" {
-			//TODO: configure URL
-			fmt.Println(url)
+			manager.SetURL(url)
 		}
 
 		if creds != "" {
@@ -34,6 +31,6 @@ var configCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(configCmd)
-	configCmd.Flags().StringP("url", "u", "", "Sets the servers URL. e.g: -u=127.0.0.1:4200")
+	configCmd.Flags().StringP("url", "u", "", "Sets the servers URL (exclude the schema). e.g: -u=127.0.0.1:4200")
 	configCmd.Flags().StringP("creds", "c", "", "Requests the server to create an account <username>:<password>. e.g: -a=hello:world")
 }

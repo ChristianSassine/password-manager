@@ -2,9 +2,12 @@ package manager
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
+	"runtime"
 	"strings"
 
 	"github.com/ChristianSassine/password-manager/pass-cli/internal/output"
@@ -20,12 +23,14 @@ var (
 
 const (
 	createAccountErrPrefix = "Creating account error:"
+	setURLErrPrefix        = "Updating URL error :"
+	gettingURLErrPrefix    = "Getting URL error :"
 )
 
 func CreateAccount(concatCreds string) {
 	match, err := regexp.MatchString(credsPattern, concatCreds)
 	if err != nil || !match {
-		output.Error("%v %v", createAccountErrPrefix, ServerContactErr)
+		outputFormattedError(createAccountErrPrefix, ServerContactErr)
 		os.Exit(1)
 	}
 
@@ -39,10 +44,56 @@ func CreateAccount(concatCreds string) {
 	}
 
 	if resp.StatusCode == http.StatusConflict {
-		output.Error("%v %v", createAccountErrPrefix, UserExistsErr)
+		outputFormattedError(createAccountErrPrefix, UserExistsErr)
 		os.Exit(1)
 	}
 
-	output.Error("%v %v", createAccountErrPrefix, ServerContactErr)
+	outputFormattedError(createAccountErrPrefix, ServerContactErr)
 	os.Exit(1)
+}
+
+func SetURL(rawURL string) {
+	OS := runtime.GOOS
+	configPath, err := os.UserConfigDir()
+	if err != nil {
+		outputFormattedError(setURLErrPrefix, err)
+		os.Exit(1)
+	}
+
+	var path string
+	if OS == "windows" {
+		configPath += "\\pass-cli"
+		path = fmt.Sprintf("%s\\server.txt", configPath)
+	}
+
+	if OS == "linux" {
+		configPath += "/pass-cli"
+		path = fmt.Sprintf("%s/server.txt", configPath)
+	}
+
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		outputFormattedError(setURLErrPrefix, err)
+		os.Exit(1)
+	}
+
+	err = os.MkdirAll(configPath, os.ModePerm)
+	if err != nil {
+		outputFormattedError(setURLErrPrefix, err)
+		os.Exit(1)
+	}
+
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0777)
+	if err != nil {
+		outputFormattedError(setURLErrPrefix, err)
+		os.Exit(1)
+	}
+
+	_, err = f.WriteString(u.String())
+	if err != nil {
+		outputFormattedError(setURLErrPrefix, err)
+		os.Exit(1)
+	}
+
+	output.Success("Success in setting the new URL!")
 }

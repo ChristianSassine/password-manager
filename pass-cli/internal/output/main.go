@@ -6,7 +6,7 @@ import (
 	"github.com/fatih/color"
 )
 
-var isQuiet = true
+var isQuiet = false
 
 func SetOutput(mute bool) {
 	isQuiet = mute

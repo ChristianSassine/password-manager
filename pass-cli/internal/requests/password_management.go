@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -116,19 +115,4 @@ func getUserCreds() (Credentials, error) {
 		os.Exit(1)
 	}
 	return Credentials{username, password}, nil
-}
-
-func getURL() (string, error) {
-	creds, err := getUserCreds()
-	if err != nil {
-		return "", err
-	}
-	var link = fmt.Sprintf("http://%s:%s@localhost:4200", creds.Username, creds.Password) // TODO: load link from file
-
-	return link, nil
-}
-
-func getURLWithoutCreds() (string, error) {
-	var link = fmt.Sprintf("http://localhost:4200") // TODO: load link from file
-	return link, nil
 }
