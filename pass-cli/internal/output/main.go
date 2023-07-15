@@ -6,36 +6,40 @@ import (
 	"github.com/fatih/color"
 )
 
-var withColor = true
+var isQuiet = true
 
-func SetOutput(color bool) {
-	withColor = color
+func SetOutput(mute bool) {
+	isQuiet = mute
 }
 
-func NormalLn(s string, a ...interface{}) {
-	fmt.Printf(s+"\n", a...)
+func Print(s string, a ...interface{}) {
+	if !isQuiet {
+		fmt.Printf(s+"\n", a...)
+		return
+	}
 }
 
 func Error(s string, a ...interface{}) {
-	if withColor {
+	if !isQuiet {
 		color.Red(s, a...)
 		return
 	}
-	fmt.Printf(s, a...)
 }
 
 func Success(s string, a ...interface{}) {
-	if withColor {
+	if !isQuiet {
 		color.Green(s, a...)
 		return
 	}
-	fmt.Printf(s, a...)
 }
 
 func Warning(s string, a ...interface{}) {
-	if withColor {
+	if !isQuiet {
 		color.Yellow(s, a...)
 		return
 	}
-	fmt.Printf(s, a...)
+}
+
+func AlwaysPrint(s string, a ...interface{}) {
+	fmt.Printf(s+"\n", a...)
 }

@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"github.com/ChristianSassine/password-manager/pass-cli/internal/manager"
+	"github.com/ChristianSassine/password-manager/pass-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -18,8 +19,20 @@ It will take the key as argument.`,
 		// TODO: Handle flags
 		if len(args) == 0 {
 			cmd.Help()
+			return
 		}
-		manager.AddPassword(args[0])
+		returnPassword, err := cmd.Flags().GetBool("output")
+		output.Print("returned password %v", returnPassword)
+		if err != nil {
+			output.Error("%v", err)
+		}
+		isQuiet, err := cmd.Flags().GetBool("quiet")
+		output.Print("isQuiet %v", isQuiet)
+		if err != nil {
+			output.Error("%v", err)
+		}
+		output.SetOutput(isQuiet)
+		manager.AddPassword(args[0], returnPassword)
 	},
 }
 

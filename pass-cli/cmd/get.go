@@ -1,25 +1,33 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
 	"github.com/ChristianSassine/password-manager/pass-cli/internal/manager"
+	"github.com/ChristianSassine/password-manager/pass-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
-// getCmd represents the get command
 var getCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Retrieves the password that matchs the key",
 	Long: `This command sends a request to the server to retrieve the password matching with the key.
-	It will take the key as argument.`,
+It will take the key as argument.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: Handle flags
 		if len(args) == 0 {
 			cmd.Help()
+			return
 		}
-		manager.GetPassword(args[0])
+		returnPassword, err := cmd.Flags().GetBool("output")
+		output.Print("returned password %v", returnPassword)
+		if err != nil {
+			output.Error("%v", err)
+		}
+		isQuiet, err := cmd.Flags().GetBool("quiet")
+		output.Print("isQuiet %v", isQuiet)
+		if err != nil {
+			output.Error("%v", err)
+		}
+		output.SetOutput(isQuiet)
+		manager.GetPassword(args[0], returnPassword)
 	},
 }
 
