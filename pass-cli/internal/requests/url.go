@@ -2,27 +2,46 @@ package requests
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"runtime"
 
 	"github.com/ChristianSassine/password-manager/pass-cli/internal/output"
 )
 
-func getURL() (string, error) {
+type query struct {
+	key   string
+	value string
+}
+
+func getURL(queries ...query) (string, error) {
 	creds, err := getUserCreds()
 	if err != nil {
 		return "", err
 	}
-	url := mustGetURL()
-	var link = fmt.Sprintf("http://%s:%s@%s", creds.Username, creds.Password, url)
 
-	return link, nil
+	urlPath := mustGetURL()
+	var link = fmt.Sprintf("http://%s:%s@%s", creds.Username, creds.Password, urlPath)
+	u, err := url.Parse(link)
+	if err != nil {
+		return "", err
+	}
+
+	for _, q := range queries {
+		u.Query().Set(q.key, q.value)
+	}
+
+	return u.String(), nil
 }
 
 func getURLWithoutCreds() (string, error) {
-	url := mustGetURL()
-	var link = fmt.Sprintf("http://%s", url)
-	return link, nil
+	urlPath := mustGetURL()
+	var link = fmt.Sprintf("http://%s", urlPath)
+	u, err := url.Parse(link)
+	if err != nil {
+		return "", err
+	}
+	return u.String(), nil
 }
 
 func mustGetURL() string {
