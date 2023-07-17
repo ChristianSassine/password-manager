@@ -17,7 +17,7 @@ const (
 )
 
 const (
-	passwordPath = "/password"
+	passwordPath = "password"
 	passKeyQuery = "key"
 )
 
@@ -39,7 +39,7 @@ func GetPassword(key string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Get(url + passwordPath + passKeyQuery + key)
+	response, err := client.Get(url)
 	if err != nil {
 		return nil, err
 	}

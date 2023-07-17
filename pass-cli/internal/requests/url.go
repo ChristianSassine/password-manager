@@ -21,26 +21,31 @@ func getURL(path string, queries ...query) (string, error) {
 	}
 
 	baseURL := mustGetURL()
-	var link = fmt.Sprintf("http://%s:%s@%s/%s", creds.Username, creds.Password, baseURL, path)
+	var link = fmt.Sprintf("http://%s:%s@%s", creds.Username, creds.Password, baseURL)
 	u, err := url.Parse(link)
 	if err != nil {
 		return "", err
 	}
 
+	u = u.JoinPath(path)
+	fmt.Println(queries)
+	urlQuery := u.Query()
 	for _, q := range queries {
-		u.Query().Set(q.key, q.value)
+		urlQuery.Set(q.key, q.value)
 	}
+	u.RawQuery = urlQuery.Encode()
 
 	return u.String(), nil
 }
 
-func getURLWithoutCreds() (string, error) {
+func getURLWithoutCreds(path string) (string, error) {
 	baseURL := mustGetURL()
 	var link = fmt.Sprintf("http://%s", baseURL)
 	u, err := url.Parse(link)
 	if err != nil {
 		return "", err
 	}
+	u = u.JoinPath(path)
 	return u.String(), nil
 }
 
@@ -67,6 +72,5 @@ func mustGetURL() string {
 		os.Exit(1)
 	}
 
-	output.Success(path)
 	return string(b)
 }

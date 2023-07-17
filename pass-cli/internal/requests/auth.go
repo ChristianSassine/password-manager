@@ -17,7 +17,7 @@ const (
 )
 
 func CreateAccountRequest(creds Credentials) (*http.Response, error) {
-	url, err := getURLWithoutCreds()
+	url, err := getURLWithoutCreds(authPath)
 	if err != nil {
 		return nil, err
 	}
@@ -25,5 +25,5 @@ func CreateAccountRequest(creds Credentials) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	return client.Post(url+authPath, "application/json", bytes.NewReader(b))
+	return client.Post(url, "application/json", bytes.NewReader(b))
 }
