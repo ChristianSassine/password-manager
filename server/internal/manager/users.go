@@ -41,7 +41,7 @@ func CreateUser(username string, password string) error {
 	return err
 }
 
-func validateUserCreds(username string, password string) error {
+func ValidateUserCreds(username string, password string) error {
 	filter := bson.D{{Key: usernameKey, Value: username}}
 	exists, err := mongodb.Exist(filter)
 	if err != nil {

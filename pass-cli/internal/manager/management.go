@@ -38,6 +38,11 @@ func AddPassword(opts requests.Parameters, returnPassword bool) {
 		return
 	}
 
+	if response.StatusCode == http.StatusForbidden {
+		outputFormattedError(addErrPrefix, BadAuth)
+		os.Exit(1)
+	}
+
 	if response.StatusCode == http.StatusConflict {
 		outputFormattedError(addErrPrefix, PasswordExistsErr)
 		os.Exit(1)
@@ -47,6 +52,7 @@ func AddPassword(opts requests.Parameters, returnPassword bool) {
 		outputFormattedError(addErrPrefix, ServerErr)
 		os.Exit(1)
 	}
+
 	outputFormattedError(addErrPrefix, ServerErr)
 }
 
@@ -80,6 +86,11 @@ func GetPassword(key string, returnPassword bool) {
 		return
 	}
 
+	if response.StatusCode == http.StatusForbidden {
+		outputFormattedError(getErrPrefix, BadAuth)
+		os.Exit(1)
+	}
+
 	if response.StatusCode == http.StatusNotFound {
 		outputFormattedError(getErrPrefix, NoPasswordErr)
 		os.Exit(1)
@@ -99,6 +110,11 @@ func RenameKey(key string, newKey string) {
 	if response.StatusCode == http.StatusOK {
 		output.Success("The key %s has been renamed to %s", key, newKey)
 		return
+	}
+
+	if response.StatusCode == http.StatusForbidden {
+		outputFormattedError(renameErrPrefix, BadAuth)
+		os.Exit(1)
 	}
 
 	if response.StatusCode == http.StatusConflict {
@@ -126,6 +142,11 @@ func RemovePassword(key string) {
 	if response.StatusCode == http.StatusOK {
 		output.Success("The key %s has been removed.", key)
 		return
+	}
+
+	if response.StatusCode == http.StatusForbidden {
+		outputFormattedError(removeErrPrefix, BadAuth)
+		os.Exit(1)
 	}
 
 	if response.StatusCode == http.StatusNotFound {

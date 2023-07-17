@@ -19,7 +19,11 @@ func handlePassword(w http.ResponseWriter, r *http.Request) {
 	creds, err := getCredentials(r)
 	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	if err := manager.ValidateUserCreds(creds.Username, creds.Password); err != nil {
 		log.Println("Creds refused", creds) // TODO: remove
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 	log.Println("Creds Accepted", creds) // TODO: remove
@@ -66,7 +70,7 @@ func handlePasswordAdd(w http.ResponseWriter, r *http.Request, creds credentials
 		return
 	}
 
-	err = manager.UserAddPassword(creds.Username, creds.Password, passOpts)
+	err = manager.UserAddPassword(creds.Username, passOpts)
 	if err == manager.PasswordConflictErr {
 		log.Println("handlePasswordAdd", "err", err) // TODO: remove
 		w.WriteHeader(http.StatusConflict)
@@ -89,7 +93,7 @@ func handlePasswordGet(w http.ResponseWriter, r *http.Request, creds credentials
 		return
 	}
 	fmt.Println("GOT KEY", passKey) // TODO: remove
-	pass, err := manager.UserGetPassword(creds.Username, creds.Password, passKey)
+	pass, err := manager.UserGetPassword(creds.Username, passKey)
 	if err == manager.NoPasswordErr {
 		log.Println("handlePasswordGet", "err", err) // TODO: remove
 		w.WriteHeader(http.StatusNotFound)
@@ -112,7 +116,7 @@ func handlePasswordRemove(w http.ResponseWriter, r *http.Request, creds credenti
 		return
 	}
 	fmt.Println("GOT KEY", passKey) // TODO: remove
-	err := manager.UserRemovePassword(creds.Username, creds.Password, passKey)
+	err := manager.UserRemovePassword(creds.Username, passKey)
 	if err != nil {
 		log.Println("handlePasswordGet", "err", err) // TODO: remove
 		w.WriteHeader(http.StatusBadRequest)
@@ -136,7 +140,7 @@ func handlePasswordModify(w http.ResponseWriter, r *http.Request, creds credenti
 	}
 
 	fmt.Println(keys) // TODO: remove
-	err = manager.UserRenamePassword(creds.Username, creds.Password, keys.OldKey, keys.NewKey)
+	err = manager.UserRenamePassword(creds.Username, keys.OldKey, keys.NewKey)
 	if err == manager.NoPasswordErr {
 		w.WriteHeader(http.StatusNotFound)
 		return

@@ -19,7 +19,7 @@ type PasswordOptions struct {
 	generator.Options
 }
 
-func UserAddPassword(username string, userPassword string, opts PasswordOptions) error {
+func UserAddPassword(username string, opts PasswordOptions) error {
 	var filter = bson.D{{Key: usernameKey, Value: username}, {Key: managedPasswordsKey + "." + opts.Key, Value: bson.D{{Key: "$exists", Value: true}}}}
 	exists, err := mongodb.Exist(filter)
 	if err != nil {
@@ -29,34 +29,18 @@ func UserAddPassword(username string, userPassword string, opts PasswordOptions)
 		return PasswordConflictErr
 	}
 
-	if err := validateUserCreds(username, userPassword); err != nil {
-		return err
-	}
-
 	return addPassword(username, opts.Key, opts.Options)
 }
 
-func UserGetPassword(username string, userPassword string, key string) (string, error) {
-	if err := validateUserCreds(username, userPassword); err != nil {
-		return "", err
-	}
-
+func UserGetPassword(username string, key string) (string, error) {
 	return getPassword(username, key)
 }
 
-func UserRemovePassword(username string, userPassword string, key string) error {
-	if err := validateUserCreds(username, userPassword); err != nil {
-		return err
-	}
-
+func UserRemovePassword(username string, key string) error {
 	return removePassword(username, key)
 }
 
-func UserRenamePassword(username string, userPassword string, oldKey string, newKey string) error {
-	if err := validateUserCreds(username, userPassword); err != nil {
-		return err
-	}
-
+func UserRenamePassword(username string, oldKey string, newKey string) error {
 	return renamePasswordKey(username, oldKey, newKey)
 }
 
