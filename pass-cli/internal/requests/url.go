@@ -14,14 +14,14 @@ type query struct {
 	value string
 }
 
-func getURL(queries ...query) (string, error) {
+func getURL(path string, queries ...query) (string, error) {
 	creds, err := getUserCreds()
 	if err != nil {
 		return "", err
 	}
 
-	urlPath := mustGetURL()
-	var link = fmt.Sprintf("http://%s:%s@%s", creds.Username, creds.Password, urlPath)
+	baseURL := mustGetURL()
+	var link = fmt.Sprintf("http://%s:%s@%s/%s", creds.Username, creds.Password, baseURL, path)
 	u, err := url.Parse(link)
 	if err != nil {
 		return "", err
@@ -35,8 +35,8 @@ func getURL(queries ...query) (string, error) {
 }
 
 func getURLWithoutCreds() (string, error) {
-	urlPath := mustGetURL()
-	var link = fmt.Sprintf("http://%s", urlPath)
+	baseURL := mustGetURL()
+	var link = fmt.Sprintf("http://%s", baseURL)
 	u, err := url.Parse(link)
 	if err != nil {
 		return "", err

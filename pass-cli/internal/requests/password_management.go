@@ -11,6 +11,16 @@ import (
 	"github.com/ChristianSassine/password-manager/pass-cli/internal/output"
 )
 
+const (
+	UserUsernameEnv = "PASS_USERNAME"
+	UserPasswordEnv = "PASS_PASSWORD"
+)
+
+const (
+	passwordPath = "/password"
+	passKeyQuery = "key"
+)
+
 var (
 	NoUsernameErr = errors.New("unable to find the username environmental variable")
 	NoPasswordErr = errors.New("unable to find the password environmental variable")
@@ -22,19 +32,14 @@ type keysChange struct {
 	NewKey string `json:"newKey"`
 }
 
-const (
-	passwordPath = "/password"
-	PassKeyQuery = "?key="
-)
-
 var client = &http.Client{}
 
 func GetPassword(key string) (*http.Response, error) {
-	url, err := getURL()
+	url, err := getURL(passwordPath, query{passKeyQuery, key})
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Get(url + passwordPath + PassKeyQuery + key)
+	response, err := client.Get(url + passwordPath + passKeyQuery + key)
 	if err != nil {
 		return nil, err
 	}
@@ -43,11 +48,11 @@ func GetPassword(key string) (*http.Response, error) {
 }
 
 func AddPassword(key string) (*http.Response, error) {
-	url, err := getURL()
+	url, err := getURL(passwordPath)
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Post(url+passwordPath, "text/plain", strings.NewReader(key))
+	response, err := client.Post(url, "text/plain", strings.NewReader(key))
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +61,7 @@ func AddPassword(key string) (*http.Response, error) {
 }
 
 func ChangePasswordKey(oldKey string, newKey string) (*http.Response, error) {
-	url, err := getURL()
+	url, err := getURL(passwordPath)
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +72,7 @@ func ChangePasswordKey(oldKey string, newKey string) (*http.Response, error) {
 		return nil, err
 	}
 
-	fullURL := url + passwordPath
-	req, err := http.NewRequest(http.MethodPut, fullURL, bytes.NewBuffer(data))
+	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
@@ -83,13 +87,12 @@ func ChangePasswordKey(oldKey string, newKey string) (*http.Response, error) {
 }
 
 func RemovePassword(key string) (*http.Response, error) {
-	url, err := getURL()
+	url, err := getURL(passwordPath, query{passKeyQuery, key})
 	if err != nil {
 		return nil, err
 	}
 
-	fullURL := url + passwordPath + PassKeyQuery + key
-	req, err := http.NewRequest(http.MethodDelete, fullURL, &bytes.Buffer{})
+	req, err := http.NewRequest(http.MethodDelete, url, &bytes.Buffer{})
 	if err != nil {
 		return nil, err
 	}
@@ -103,13 +106,13 @@ func RemovePassword(key string) (*http.Response, error) {
 }
 
 func getUserCreds() (Credentials, error) {
-	username, ok := os.LookupEnv("PASS_USERNAME")
+	username, ok := os.LookupEnv(UserUsernameEnv)
 	if !ok {
 		output.Error(NoUsernameErr.Error())
 		os.Exit(1)
 	}
 
-	password, ok := os.LookupEnv("PASS_PASSWORD")
+	password, ok := os.LookupEnv(UserPasswordEnv)
 	if !ok {
 		output.Error(NoPasswordErr.Error())
 		os.Exit(1)
