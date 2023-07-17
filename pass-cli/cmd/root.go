@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/ChristianSassine/password-manager/pass-cli/internal/output"
 	"github.com/spf13/cobra"
 )
 
@@ -20,4 +21,31 @@ func Execute() {
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+func getBool(cmd *cobra.Command, name string) bool {
+	result, err := cmd.Flags().GetBool(name)
+	if err != nil {
+		output.Error("%v", err)
+		os.Exit(1)
+	}
+	return result
+}
+
+func getInt(cmd *cobra.Command, name string) int {
+	result, err := cmd.Flags().GetInt(name)
+	if err != nil {
+		output.Error("%v", err)
+		os.Exit(1)
+	}
+	return result
+}
+
+func getString(cmd *cobra.Command, name string) string {
+	result, err := cmd.Flags().GetString(name)
+	if err != nil {
+		output.Error("%v", err)
+		os.Exit(1)
+	}
+	return result
 }

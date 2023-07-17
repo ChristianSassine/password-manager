@@ -1,10 +1,9 @@
 package cmd
 
 import (
-	"os"
-
 	"github.com/ChristianSassine/password-manager/pass-cli/internal/manager"
 	"github.com/ChristianSassine/password-manager/pass-cli/internal/output"
+	"github.com/ChristianSassine/password-manager/pass-cli/internal/requests"
 	"github.com/spf13/cobra"
 )
 
@@ -19,25 +18,36 @@ It will take the key as argument.`,
 			return
 		}
 
-		returnPassword, err := cmd.Flags().GetBool("output")
-		if err != nil {
-			output.Error("%v", err)
-			os.Exit(1)
-		}
+		returnPassword := getBool(cmd, "output")
+		isQuiet := getBool(cmd, "quiet")
 
-		isQuiet, err := cmd.Flags().GetBool("quiet")
-		if err != nil {
-			output.Error("%v", err)
-			os.Exit(1)
-		}
+		// Parameters
+		length := getInt(cmd, "characters")
+		disableLowerLetters := getBool(cmd, "lower")
+		disableUpperLetters := getBool(cmd, "upper")
+		disableDigits := getBool(cmd, "digits")
+		disableSpecial := getBool(cmd, "special")
 
 		output.SetOutput(isQuiet)
-		manager.AddPassword(args[0], returnPassword)
+		manager.AddPassword(requests.Parameters{
+			Key: args[0], Length: length, LowerLetters: !disableLowerLetters,
+			UpperLetters: !disableUpperLetters, Digits: !disableDigits,
+			Symbols: !disableSpecial,
+		},
+			returnPassword)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(addCmd)
+
 	addCmd.Flags().BoolP("output", "o", false, "Will display the password")
 	addCmd.Flags().BoolP("quiet", "q", false, "Will silence descriptions and only return the result (if enabled)")
+
+	// Password config flags
+	addCmd.Flags().IntP("characters", "c", 32, "choose how many characters should be included in the password (by default 32). eg: -c 10")
+	addCmd.Flags().BoolP("lower", "l", false, "generate a password without lowerCase letters")
+	addCmd.Flags().BoolP("upper", "u", false, "generate a password without UpperCase letters")
+	addCmd.Flags().BoolP("digits", "d", false, "generate a password without digits")
+	addCmd.Flags().BoolP("special", "s", false, "generate a password without special characters")
 }

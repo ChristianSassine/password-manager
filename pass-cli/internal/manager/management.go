@@ -23,10 +23,10 @@ const (
 	removeErrPrefix = "Renaming password key error:"
 )
 
-func AddPassword(key string, returnPassword bool) {
+func AddPassword(opts requests.Parameters, returnPassword bool) {
 	output.Print("Adding password...")
 
-	response, err := requests.AddPassword(key)
+	response, err := requests.AddPassword(opts)
 	if err != nil {
 		outputFormattedError(addErrPrefix, ServerContactErr)
 		os.Exit(1)
@@ -34,7 +34,7 @@ func AddPassword(key string, returnPassword bool) {
 
 	if response.StatusCode == http.StatusCreated {
 		output.Success("The password has been added!")
-		GetPassword(key, returnPassword)
+		GetPassword(opts.Key, returnPassword)
 		return
 	}
 
@@ -44,7 +44,7 @@ func AddPassword(key string, returnPassword bool) {
 	}
 
 	if response.StatusCode == http.StatusBadRequest {
-		outputFormattedError(addErrPrefix, PasswordExistsErr)
+		outputFormattedError(addErrPrefix, ServerErr)
 		os.Exit(1)
 	}
 	outputFormattedError(addErrPrefix, ServerErr)

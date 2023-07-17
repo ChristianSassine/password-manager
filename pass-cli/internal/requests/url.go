@@ -28,7 +28,6 @@ func getURL(path string, queries ...query) (string, error) {
 	}
 
 	u = u.JoinPath(path)
-	fmt.Println(queries)
 	urlQuery := u.Query()
 	for _, q := range queries {
 		urlQuery.Set(q.key, q.value)

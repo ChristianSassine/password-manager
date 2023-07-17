@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/ChristianSassine/password-manager/server/internal/manager"
 )
@@ -16,17 +15,12 @@ type renameKeys struct {
 	NewKey string `json:"newKey"`
 }
 
-func timer(name string) func() {
-	start := time.Now()
-	return func() {
-		fmt.Printf("%s took %v\n", name, time.Since(start))
-	}
-}
-
 func handlePassword(w http.ResponseWriter, r *http.Request) {
 	creds, err := getCredentials(r)
 	if err != nil {
-		log.Fatal("Creds: ", err) // TODO: Return an error instead of panicking
+		w.WriteHeader(http.StatusForbidden)
+		log.Println("Creds refused", creds) // TODO: remove
+		return
 	}
 	log.Println("Creds Accepted", creds) // TODO: remove
 	switch r.Method {
@@ -46,7 +40,7 @@ func handlePassword(w http.ResponseWriter, r *http.Request) {
 func handlePasswordAdd(w http.ResponseWriter, r *http.Request, creds credentials) {
 
 	log.Println("handlePasswordAdd", "Adding...") // TODO: remove
-	if r.Header.Get("Content-type") != "text/plain" {
+	if r.Header.Get("Content-type") != "application/json" {
 		w.WriteHeader(http.StatusBadRequest)
 		log.Println("handlePasswordAdd", "WRONG HEADER") // TODO: remove
 		return
@@ -58,13 +52,21 @@ func handlePasswordAdd(w http.ResponseWriter, r *http.Request, creds credentials
 		log.Println("handlePasswordAdd", "err:", err) // TODO: remove
 		return
 	}
-	key := string(responseData)
-	if key == "" {
+	var passOpts manager.PasswordOptions
+	err = json.Unmarshal(responseData, &passOpts)
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		log.Println("handlePasswordAdd", "error:", err) // TODO: remove
 		return
 	}
-	err = manager.UserAddPassword(creds.Username, creds.Password, key)
+
+	if passOpts.Key == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		log.Println("handlePasswordAdd", "error:", err) // TODO: remove
+		return
+	}
+
+	err = manager.UserAddPassword(creds.Username, creds.Password, passOpts)
 	if err == manager.PasswordConflictErr {
 		log.Println("handlePasswordAdd", "err", err) // TODO: remove
 		w.WriteHeader(http.StatusConflict)

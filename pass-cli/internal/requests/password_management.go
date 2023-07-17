@@ -6,7 +6,6 @@ import (
 	"errors"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/ChristianSassine/password-manager/pass-cli/internal/output"
 )
@@ -32,6 +31,15 @@ type keysChange struct {
 	NewKey string `json:"newKey"`
 }
 
+type Parameters struct {
+	Key          string `json:"key"`
+	Length       int    `json:"length"`
+	LowerLetters bool   `json:"lowerLetters"`
+	UpperLetters bool   `json:"upperLetters"`
+	Digits       bool   `json:"digits"`
+	Symbols      bool   `json:"symbols"`
+}
+
 var client = &http.Client{}
 
 func GetPassword(key string) (*http.Response, error) {
@@ -47,12 +55,17 @@ func GetPassword(key string) (*http.Response, error) {
 	return response, nil
 }
 
-func AddPassword(key string) (*http.Response, error) {
+func AddPassword(opts Parameters) (*http.Response, error) {
 	url, err := getURL(passwordPath)
 	if err != nil {
 		return nil, err
 	}
-	response, err := client.Post(url, "text/plain", strings.NewReader(key))
+
+	b, err := json.Marshal(opts)
+	if err != nil {
+		return nil, err
+	}
+	response, err := client.Post(url, "application/json", bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}

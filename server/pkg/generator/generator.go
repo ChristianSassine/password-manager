@@ -23,11 +23,11 @@ const (
 )
 
 type Options struct {
-	Length       int
-	LowerLetters bool
-	UpperLetters bool
-	Digits       bool
-	Symbols      bool
+	Length       int  `json:"length"`
+	LowerLetters bool `json:"lowerLetters"`
+	UpperLetters bool `json:"upperLetters"`
+	Digits       bool `json:"digits"`
+	Symbols      bool `json:"symbols"`
 }
 
 type optionSizes struct {

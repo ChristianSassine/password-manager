@@ -14,10 +14,13 @@ var (
 	PasswordConflictErr = errors.New("Invalid password key. The password already exists")
 )
 
-// TODO: Migrate to using mongoDB ids instead of usernames
+type PasswordOptions struct {
+	Key string `json:"key"`
+	generator.Options
+}
 
-func UserAddPassword(username string, userPassword string, key string) error {
-	var filter = bson.D{{Key: usernameKey, Value: username}, {Key: managedPasswordsKey + "." + key, Value: bson.D{{Key: "$exists", Value: true}}}}
+func UserAddPassword(username string, userPassword string, opts PasswordOptions) error {
+	var filter = bson.D{{Key: usernameKey, Value: username}, {Key: managedPasswordsKey + "." + opts.Key, Value: bson.D{{Key: "$exists", Value: true}}}}
 	exists, err := mongodb.Exist(filter)
 	if err != nil {
 		return err
@@ -30,7 +33,7 @@ func UserAddPassword(username string, userPassword string, key string) error {
 		return err
 	}
 
-	return addPassword(username, key)
+	return addPassword(username, opts.Key, opts.Options)
 }
 
 func UserGetPassword(username string, userPassword string, key string) (string, error) {
@@ -58,10 +61,10 @@ func UserRenamePassword(username string, userPassword string, oldKey string, new
 }
 
 // TODO: Add password encryption
-func addPassword(username string, key string) error {
+func addPassword(username string, key string, opts generator.Options) error {
 	var filter = bson.D{{Key: usernameKey, Value: username}}
 
-	newPassword, err := generator.Generate(generator.Options{Length: 32, LowerLetters: true, UpperLetters: true, Digits: true, Symbols: true}) // TODO: Make password configurable
+	newPassword, err := generator.Generate(opts) // TODO: Make password configurable
 	if err != nil {
 		return err
 	}
