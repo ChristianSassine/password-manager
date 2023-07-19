@@ -1,24 +1,25 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"time"
+	"os"
 
 	"github.com/ChristianSassine/password-manager/server/internal/handlers"
 	"github.com/ChristianSassine/password-manager/server/internal/mongodb"
 )
 
-func timer(name string) func() {
-	start := time.Now()
-	return func() {
-		fmt.Printf("%s took %v\n", name, time.Since(start))
-	}
-}
+var (
+	ErrServerPort = errors.New("missing SERVER_PORT environmental variable for the server listening port")
+)
 
 func main() {
-	defer timer("main")()
+	port, ok := os.LookupEnv("MONGO_PORT")
+	if !ok {
+		log.Fatal(ErrServerPort)
+	}
 
 	// Start MongoDB Client
 	log.Println("Starting Database...")
@@ -31,7 +32,9 @@ func main() {
 	// Server initialization
 	log.Println("Started Listening...")
 	handlers.InitHandlers()
-	err = http.ListenAndServe(":4200", nil) // TODO: Change port to environment PORT
+
+	serverPort := fmt.Sprintf(":%v", port)
+	err = http.ListenAndServe(serverPort, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

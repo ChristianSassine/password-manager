@@ -2,12 +2,22 @@ package mongodb
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+var (
+	ErrMongoUsername = errors.New("missing MONGO_USERNAME environmental variable for MongoDB")
+	ErrMongoPassword = errors.New("missing MONGO_PASSWORD environmental variable for MongoDB")
+	ErrMongoIP       = errors.New("missing MONGO_IP environmental variable for MongoDB")
+	ErrMongoPort     = errors.New("missing MONGO_PORT environmental variable for MongoDB")
 )
 
 var (
@@ -28,7 +38,24 @@ type userData struct {
 }
 
 func Start() error {
-	var uri = "mongodb://root:pass@127.0.0.1:27017/" // TODO: Make the parameters environmental variables
+	username, ok := os.LookupEnv("MONGO_USERNAME")
+	if !ok {
+		log.Fatal(ErrMongoUsername)
+	}
+	password, ok := os.LookupEnv("MONGO_PASSWORD")
+	if !ok {
+		log.Fatal(ErrMongoPassword)
+	}
+	ip, ok := os.LookupEnv("MONGO_IP")
+	if !ok {
+		log.Fatal(ErrMongoIP)
+	}
+	port, ok := os.LookupEnv("MONGO_PORT")
+	if !ok {
+		log.Fatal(ErrMongoPort)
+	}
+
+	var uri = fmt.Sprintf("mongodb://%v:%v@%v:%v/", username, password, ip, port)
 
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
@@ -46,7 +73,7 @@ func Start() error {
 	if err := clientDb.RunCommand(ctx, bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
 		panic(err)
 	}
-	fmt.Println("Successfully connected to MongoDB!") // TODO: Replace with actual logger
+	fmt.Println("Successfully connected to MongoDB!")
 
 	if isCollectionMissing(userCollection) {
 		createCollection()

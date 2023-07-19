@@ -46,7 +46,6 @@ func UserRenamePassword(username string, oldKey string, newKey string) error {
 	return renamePasswordKey(username, oldKey, newKey)
 }
 
-// TODO: Add password encryption
 func addPassword(username string, key string, opts generator.Options) error {
 	var filter = bson.D{{Key: usernameKey, Value: username}}
 
