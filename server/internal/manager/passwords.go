@@ -48,7 +48,7 @@ func UserRenamePassword(username string, oldKey string, newKey string) error {
 func addPassword(username string, key string, opts generator.Options) error {
 	var filter = bson.D{{Key: usernameKey, Value: username}}
 
-	newPassword, err := generator.Generate(opts) // TODO: Make password configurable
+	newPassword, err := generator.Generate(opts)
 	if err != nil {
 		return err
 	}

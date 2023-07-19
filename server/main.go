@@ -24,16 +24,15 @@ func main() {
 	log.Println("Starting Database...")
 	err := mongodb.Start()
 	if err != nil {
-		log.Fatal("MongoDB: ", err) // TODO: replace log
+		log.Fatal("MongoDB: ", err)
 	}
 	defer mongodb.Disconnect()
 
 	// Server initialization
 	log.Println("Started Listening...")
 	handlers.InitHandlers()
-	// TODO: Adds TLS
 	err = http.ListenAndServe(":4200", nil) // TODO: Change port to environment PORT
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err) // TODO: replace log
+		log.Fatal("ListenAndServe: ", err)
 	}
 }

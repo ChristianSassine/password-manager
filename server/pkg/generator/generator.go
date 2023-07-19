@@ -89,7 +89,7 @@ func Generate(opts Options) (string, error) {
 		s.WriteByte(characters[j])
 		poolOpts[i].count--
 		if poolOpts[i].count == 0 {
-			poolOpts = utils.DeleteIndex(poolOpts, i) // We'll do this at max of 4 times. It can be considered constant.
+			poolOpts = utils.DeleteIndex(poolOpts, i) // We'll do this at max 4 times. It can be considered constant.
 		}
 	}
 
@@ -106,7 +106,6 @@ func getNewCharacter(charactersSet string) (string, error) {
 	return string(charactersSet[i]), err
 }
 
-// TODO: refactor this whole function
 func computeOptionLengths(opts Options) (optionSizes, error) {
 	remaining := opts.Length
 	optsNum := 0
