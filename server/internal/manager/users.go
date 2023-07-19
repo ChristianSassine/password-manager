@@ -3,8 +3,8 @@ package manager
 import (
 	"errors"
 
-	"github.com/ChristianSassine/password-manager/server/internal/hashing"
 	"github.com/ChristianSassine/password-manager/server/internal/mongodb"
+	"github.com/ChristianSassine/password-manager/server/internal/security"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -23,7 +23,7 @@ const (
 type UserData struct {
 	Username  string            `bson:"username"`
 	Password  string            `bson:"password"`
-	Passwords map[string]string `bson:"passwords,omitempty"`
+	Passwords map[string][]byte `bson:"passwords,omitempty"`
 }
 
 func CreateUser(username string, password string) error {
@@ -32,7 +32,7 @@ func CreateUser(username string, password string) error {
 		return err
 	}
 
-	hashedPassword, err := hashing.HashPassword(password)
+	hashedPassword, err := security.HashPassword(password)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func ValidateUserCreds(username string, password string) error {
 		return err
 	}
 
-	if !hashing.CheckPassword(password, user.Password) {
+	if !security.CheckPassword(password, user.Password) {
 		return UserInvalidErr
 	}
 

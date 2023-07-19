@@ -2,8 +2,10 @@ package manager
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/ChristianSassine/password-manager/server/internal/mongodb"
+	"github.com/ChristianSassine/password-manager/server/internal/security"
 	"github.com/ChristianSassine/password-manager/server/pkg/generator"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -52,7 +54,14 @@ func addPassword(username string, key string, opts generator.Options) error {
 	if err != nil {
 		return err
 	}
-	var update = bson.D{{Key: "$set", Value: bson.D{{Key: managedPasswordsKey + "." + key, Value: newPassword}}}}
+	fmt.Println("password:", newPassword)
+	encryptedPass, err := security.Encrypt([]byte(newPassword))
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("encrypted:", encryptedPass)
+	var update = bson.D{{Key: "$set", Value: bson.D{{Key: managedPasswordsKey + "." + key, Value: encryptedPass}}}}
 	_, err = mongodb.Update(filter, update)
 	if err != nil {
 		return err
@@ -78,7 +87,12 @@ func getPassword(username string, key string) (string, error) {
 	if err := res.Decode(&data); err != nil {
 		return "", err
 	}
-	return data.Passwords[key], nil
+	decryptedPass, err := security.Decrypt(data.Passwords[key])
+	if err != nil {
+		return "", err
+	}
+
+	return string(decryptedPass), nil
 }
 
 func removePassword(username string, key string) error {
