@@ -73,7 +73,7 @@ func Start() error {
 	if err := clientDb.RunCommand(ctx, bson.D{{Key: "ping", Value: 1}}).Decode(&result); err != nil {
 		panic(err)
 	}
-	fmt.Println("Successfully connected to MongoDB!")
+	log.Println("Successfully connected to MongoDB!")
 
 	if isCollectionMissing(userCollection) {
 		createCollection()

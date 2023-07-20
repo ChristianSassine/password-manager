@@ -2,7 +2,6 @@ package manager
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/ChristianSassine/password-manager/server/internal/mongodb"
 	"github.com/ChristianSassine/password-manager/server/internal/security"
@@ -53,13 +52,11 @@ func addPassword(username string, key string, opts generator.Options) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("password:", newPassword)
 	encryptedPass, err := security.Encrypt([]byte(newPassword))
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("encrypted:", encryptedPass)
 	var update = bson.D{{Key: "$set", Value: bson.D{{Key: managedPasswordsKey + "." + key, Value: encryptedPass}}}}
 	_, err = mongodb.Update(filter, update)
 	if err != nil {
