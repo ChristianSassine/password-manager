@@ -59,9 +59,7 @@ func mustGetURL() string {
 	var path string
 	if OS == "windows" {
 		path = fmt.Sprintf("%s\\pass-cli\\server.txt", configPath)
-	}
-
-	if OS == "linux" {
+	} else {
 		path = fmt.Sprintf("%s/pass-cli/server.txt", configPath)
 	}
 
