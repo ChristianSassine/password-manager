@@ -25,3 +25,6 @@ go.work.sum
 *.pem
 *.key
 *.crt
+
+# Data directory
+data/

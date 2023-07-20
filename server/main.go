@@ -16,7 +16,7 @@ var (
 )
 
 func main() {
-	port, ok := os.LookupEnv("MONGO_PORT")
+	port, ok := os.LookupEnv("SERVER_PORT")
 	if !ok {
 		log.Fatal(ErrServerPort)
 	}

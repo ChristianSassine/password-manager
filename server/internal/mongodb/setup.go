@@ -16,7 +16,7 @@ import (
 var (
 	ErrMongoUsername = errors.New("missing MONGO_USERNAME environmental variable for MongoDB")
 	ErrMongoPassword = errors.New("missing MONGO_PASSWORD environmental variable for MongoDB")
-	ErrMongoIP       = errors.New("missing MONGO_IP environmental variable for MongoDB")
+	ErrMongoAddr     = errors.New("missing MONGO_ADDR environmental variable for MongoDB")
 	ErrMongoPort     = errors.New("missing MONGO_PORT environmental variable for MongoDB")
 )
 
@@ -28,7 +28,7 @@ var (
 
 const (
 	databaseName   = "password-manager"
-	userCollection = "DevData"
+	userCollection = "pass-manager"
 )
 
 type userData struct {
@@ -46,9 +46,9 @@ func Start() error {
 	if !ok {
 		log.Fatal(ErrMongoPassword)
 	}
-	ip, ok := os.LookupEnv("MONGO_IP")
+	ip, ok := os.LookupEnv("MONGO_ADDR")
 	if !ok {
-		log.Fatal(ErrMongoIP)
+		log.Fatal(ErrMongoAddr)
 	}
 	port, ok := os.LookupEnv("MONGO_PORT")
 	if !ok {

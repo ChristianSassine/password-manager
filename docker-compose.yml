@@ -1,15 +1,35 @@
 version: '3.1'
 
-services:
+# It is recommended to replace the username and passwords
+# If you wish to deploy this outside of a local network, you should probably implement TLS
 
+services:
   mongo:
     image: mongo
     restart: always
+    volumes:
+      - ./data/db/:/data/db
     ports:
       - 27017:27017
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_ROOT_USERNAME: passAdminUser
+      MONGO_INITDB_ROOT_PASSWORD: passManagerPass
+
+  server:
+    container_name: server
+    build: ./server
+    depends_on:
+      - mongo
+    restart: always
+    environment:
+      - SERVER_PORT=8080
+      - MONGO_USERNAME=passAdminUser
+      - MONGO_PASSWORD=passManagerPass
+      - MONGO_ADDR=mongo
+      - MONGO_PORT=27017
+      - SECRET_KEY=my_secret_key # To replace
+    ports:
+      - "8080:8080"
 
   mongo-express:
     image: mongo-express
@@ -19,4 +39,4 @@ services:
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: pass
-      ME_CONFIG_MONGODB_URL: mongodb://root:pass@mongo:27017/
+      ME_CONFIG_MONGODB_URL: mongodb://passAdminUser:passManagerPass@mongo:27017/
