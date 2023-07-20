@@ -1,7 +1,7 @@
 version: '3.1'
 
 # It is recommended to replace the username and passwords
-# If you wish to deploy this outside of a local network, you should probably implement TLS
+# If you wish to deploy this outside of a your computer or your secured local network, you should probably implement TLS
 
 services:
   mongo:
@@ -30,13 +30,3 @@ services:
       - SECRET_KEY=my_secret_key # To replace
     ports:
       - "8080:8080"
-
-  mongo-express:
-    image: mongo-express
-    restart: always
-    ports:
-      - 8081:8081
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: pass
-      ME_CONFIG_MONGODB_URL: mongodb://passAdminUser:passManagerPass@mongo:27017/
