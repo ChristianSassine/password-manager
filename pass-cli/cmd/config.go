@@ -9,8 +9,8 @@ var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Sets the server's URL and creates a user",
 	Long: `This command is used to set the server's URL which will be saved in a config file.
-	This command is also used to create an account.
-	Refer to the flags for this command.`,
+This command is also used to create an account.
+Refer to the flags for this command.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		url, _ := cmd.Flags().GetString("url")
