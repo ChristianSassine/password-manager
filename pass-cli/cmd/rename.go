@@ -10,13 +10,9 @@ import (
 
 var renameCmd = &cobra.Command{
 	Use:   "rename [key] [newKeyName]",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Renames a password's key.",
+	Long: `This command sends a request to the server to rename a password's key with the [newKeyName].
+It will take the password's current [key] and the [newKeyName] as arguments.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if len(args) < 2 {
