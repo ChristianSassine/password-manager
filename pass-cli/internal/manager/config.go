@@ -64,9 +64,7 @@ func SetURL(rawURL string) {
 	if OS == "windows" {
 		configPath += "\\pass-cli"
 		path = fmt.Sprintf("%s\\server.txt", configPath)
-	}
-
-	if OS == "linux" {
+	} else {
 		configPath += "/pass-cli"
 		path = fmt.Sprintf("%s/server.txt", configPath)
 	}
