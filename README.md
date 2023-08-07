@@ -31,7 +31,10 @@ The CLI tool automatically copies the password to the **clipboard** and it is al
 ### Usage
 #### Server
 * Tweak the environmental variables in the [docker-compose.yml](https://github.com/ChristianSassine/password-manager/blob/main/docker-compose.yml) (optional but **recommended**)
-* Execute `docker compose up` in the cloned repository to run the server and database containers
+* Execute the following command in the cloned repository to run the server and database containers:
+```
+docker compose up
+```
 #### Client
 * You will find the CLI's binary in GOBIN if it's defined, otherwise it will be in GOPATH/bin
 * You will need to set the server's URL and create a user on the client with:
